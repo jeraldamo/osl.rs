@@ -1,0 +1,8 @@
+/* This is a comment
+on two lines */
+shader darken(
+  color In = 1,
+  output color Out = 1
+){
+  Out = In * 0.5;
+}
