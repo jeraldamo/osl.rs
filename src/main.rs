@@ -21,13 +21,18 @@ fn main() {
             .join(shader_file.clone())
         );
     let contents = fs::read_to_string(file_path).expect("Invalid file");
+    println!("{}", contents.len());
 
     let file = SimpleFile::new("test.osl", contents.clone());
 
     match compile(contents.clone()) {
         Err(e) => {
             let writer = StandardStream::stderr(ColorChoice::Always);
-            let config = codespan_reporting::term::Config::default();
+            let config = codespan_reporting::term::Config{
+                start_context_lines: 3,
+                end_context_lines: 3,
+                ..Default::default()
+            };
             term::emit(&mut writer.lock(), &config, &file, &e.report());
         }
         _ => {}
@@ -61,7 +66,7 @@ fn compile(contents: String) -> Result<(), OSLCompilerError> {
 
         println!("{:#?}", statements);
 
-        let mut comp = compiler::Compiler::new(&statements);
+        let mut comp = compiler::Compiler::new(&statements, contents.len());
         comp.compile()?;
     }
 

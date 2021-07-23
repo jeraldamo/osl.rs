@@ -3,6 +3,7 @@ pub mod ast;
 pub mod parser;
 pub mod compiler;
 pub mod errors;
+pub mod symtab;
 
 
 #[derive(Debug, Clone, Copy)]
