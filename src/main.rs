@@ -14,7 +14,7 @@ use osl::errors::*;
 
 fn main() {
 
-    let shader_file = "test.osl";
+    let shader_file = "darken.osl";
     let file_path = current_dir()
         .unwrap()
         .join(PathBuf::from("shaders")
@@ -23,7 +23,7 @@ fn main() {
     let contents = fs::read_to_string(file_path).expect("Invalid file");
     println!("{}", contents.len());
 
-    let file = SimpleFile::new("test.osl", contents.clone());
+    let file = SimpleFile::new("darken.osl", contents.clone());
 
     match compile(contents.clone()) {
         Err(e) => {

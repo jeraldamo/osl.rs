@@ -75,3 +75,10 @@ pub fn get_var_type_value(expr: &Expr) -> Option<Types> {
         _ => None,
     }
 }
+
+pub fn get_shader_type_value(expr: &Expr) -> Option<ShaderTypes> {
+    match &expr.node {
+        Expr_::ShaderType(t) => Some(t.clone()),
+        _ => None,
+    }
+}

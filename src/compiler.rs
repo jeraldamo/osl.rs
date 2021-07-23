@@ -66,14 +66,36 @@ impl<'a> Compiler<'a> {
                                                    stmt.span,
                                                    false)?;
                 },
-                Stmt_::BlockStatement(block_stmts) => {
+
+                Stmt_::ShaderDeclaration{name, shader_type, params, body, ..} => {
+                    self.symbol_table.add_shader(get_shader_type_value(shader_type).unwrap(),
+                                                   get_ident_value(name).unwrap(),
+                                                   stmt.span);
+
                     self.symbol_table.up_scope(stmt.span);
-                    self.build_symbols(block_stmts);
+
+                    for param in params {
+                        match param.clone().node {
+                            Expr_::Parameter {par_type, name, out, ..} => {
+                                self.symbol_table.add_variable(get_var_type_value(&par_type).unwrap(),
+                                   get_ident_value(&name).unwrap(),
+                                   param.span,
+                                   out);
+                            }
+                            _ => {}
+                        }
+                    }
+
+                    match body.clone().statement {
+                        Stmt_::BlockStatement(block_stmts) => {
+                            self.build_symbols(&block_stmts);
+                        }
+                        _ => {}
+                    }
+
                     self.symbol_table.down_scope();
                 },
-                Stmt_::ShaderDeclaration{body, ..} => {
 
-                },
                 Stmt_::FunctionDeclaration{name, ret_type, params, body} => {
                     self.symbol_table.add_function(get_var_type_value(ret_type).unwrap(),
                         get_ident_value(name).unwrap(),
@@ -101,6 +123,12 @@ impl<'a> Compiler<'a> {
                         _ => {}
                     }
 
+                    self.symbol_table.down_scope();
+                },
+
+                Stmt_::BlockStatement(block_stmts) => {
+                    self.symbol_table.up_scope(stmt.span);
+                    self.build_symbols(block_stmts);
                     self.symbol_table.down_scope();
                 },
                 _ => {}

@@ -37,18 +37,12 @@ impl Symbols {
             _ => String::new(),
         }
     }
-    pub fn get_type(&self) -> Types {
+    pub fn get_type(&self) -> String {
         match self {
-            Symbols::Variable {var_type, ..} => var_type.clone(),
-            Symbols::Function {ret_type, ..} => ret_type.clone(),
-            _ => Types::Void,
-        }
-    }
-
-    pub fn get_shader_type(&self) -> ShaderTypes {
-        match self {
-            Symbols::Shader {shader_type, ..} => shader_type.clone(),
-            _ => ShaderTypes::Shader,
+            Symbols::Variable {var_type, ..} => format!("{:?}", var_type.clone()),
+            Symbols::Function {ret_type, ..} => format!("{:?}", ret_type.clone()),
+            Symbols::Shader {shader_type, ..} => format!("{:?}", shader_type.clone()),
+            _ => String::new(),
         }
     }
 
@@ -158,6 +152,37 @@ impl SymbolTable {
 
         else {
             self.symbols.insert(name.clone(), vec![func]);
+        }
+
+        Ok(())
+    }
+
+    pub fn add_shader(&mut self, shader_type: ShaderTypes, name: String, span: Span) -> Result<(), OSLCompilerError> {
+        let shader = Symbols::Shader {
+            shader_type,
+            name: name.clone(),
+            span,
+            scope: self.cur_scope,
+        };
+
+        if self.symbols.contains_key(name.as_str()) {
+            for symbol in self.symbols.get(name.as_str()).unwrap() {
+                if symbol.get_scope() == self.cur_scope {
+                    // Duplicate symbol error
+                    return Err(OSLCompilerError::ExistingVariable {
+                        existing: Item::new(symbol.get_span(), symbol.get_name()),
+                        new: Item::new(span, name),
+                    });
+                }
+            }
+
+            self.symbols.get_mut(name.as_str())
+                .unwrap()
+                .push(shader);
+        }
+
+        else {
+            self.symbols.insert(name.clone(), vec![shader]);
         }
 
         Ok(())
