@@ -41,34 +41,30 @@ fn main() {
 
 fn compile(contents: String) -> Result<(), OSLCompilerError> {
 
-
-
     let tokens= lexer::Lexer::new(contents.as_str());
-
-    let mut encountered_lexing_error = false;
 
     for tok in tokens.clone() {
         match tok.0 {
-            Token::Error(msg) => {
-                eprintln!("Syntax Error (line {}): {}", tok.1.line, msg);
-                encountered_lexing_error = true;
+            Token::Error{message, content} => {
+                return Err(OSLCompilerError::LexerError {
+                    message,
+                    error: Item::new(tok.1, content),
+                });
             },
             _ => {},
         }
     }
 
-    if !encountered_lexing_error {
-        for tok in tokens.clone() {
-            println!{"{:?}", tok};
-        }
-
-        let statements = parser::parse(tokens.clone()).expect("Error Parsing");
-
-        println!("{:#?}", statements);
-
-        let mut comp = compiler::Compiler::new(&statements, contents.len());
-        comp.compile()?;
+    for tok in tokens.clone() {
+        println!{"{:?}", tok};
     }
+
+    let statements = parser::parse(tokens.clone()).expect("Error Parsing");
+
+    println!("{:#?}", statements);
+
+    let mut comp = compiler::Compiler::new(&statements, contents.len());
+    comp.compile()?;
 
     Ok(())
 }

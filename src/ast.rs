@@ -1,12 +1,12 @@
 use crate::{Span, Types, Operators, ShaderTypes, Globals};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Stmt {
     pub span: Span,
     pub statement: Stmt_,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Stmt_ {
     ExpressionStatement(Expr),
     EmptyStatement,
@@ -16,6 +16,7 @@ pub enum Stmt_ {
         ret_type: Expr,
         params: Vec<Expr>,
         body: Box<Stmt>,
+        // public: bool,
     },
     VariableDeclaration {
         var_type: Expr,
@@ -35,13 +36,13 @@ pub enum Stmt_ {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Expr {
     pub span: Span,
     pub node: Expr_,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Expr_ {
     BinaryExpression(Operators, Box<Expr>, Box<Expr>),
     Assignment(Box<Expr>, Box<Expr>),

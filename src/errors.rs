@@ -6,18 +6,21 @@ use std::ops::Range;
 
 use crate::Span;
 
+#[derive(Debug, Clone)]
 pub enum OSLCompilerError {
 
-    OutOfScopeVariable (Item),
+    OutOfScopeVariable {var: Item},
 
-    ExistingVariable (Item, Item),
+    ExistingVariable {existing: Item, new: Item},
+
+    LexerError {message: String, error: Item},
 }
 
 impl OSLCompilerError {
     pub fn report(&self) -> Diagnostic<()> {
         match self {
 
-            OSLCompilerError::OutOfScopeVariable(var) => Diagnostic::error()
+            OSLCompilerError::OutOfScopeVariable{var} => Diagnostic::error()
                 //.with_code("E0308")
                 .with_message("Variable out of scope")
                 .with_labels(vec![
@@ -25,14 +28,14 @@ impl OSLCompilerError {
                         "Variable {} out of scope", var.content)),
                     ]),
             
-            OSLCompilerError::ExistingVariable(original, new) => Diagnostic::error()
+            OSLCompilerError::ExistingVariable{existing, new} => Diagnostic::error()
                 //.with_code("E0384")
                 .with_message("Cannot declare variable twice in same scope")
                 .with_labels(vec![
-                    Label::secondary((), original.range.clone()).with_message(
+                    Label::secondary((), existing.range.clone()).with_message(
                         &format!(
                             "Original declaration for {}",
-                            original.content,
+                            existing.content,
                         ),
                     ),
                     Label::primary((), new.range.clone())
@@ -41,12 +44,21 @@ impl OSLCompilerError {
                             new.content,
                         )),
                 ]),
+
+
+            OSLCompilerError::LexerError{message, error} => Diagnostic::error()
+                //.with_code("E0308")
+                .with_message(message)
+                .with_labels(vec![
+                    Label::primary((), error.range.clone()),
+                ]),
         }
     }
 }
 
 /// An item in the source code to be used in the `Error` enum.
 /// In a more complex program it could also contain a `files::FileId` to handle errors that occur inside multiple files.
+#[derive(Debug, Clone)]
 pub struct Item {
     range: Range<usize>,
     content: String,

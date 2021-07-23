@@ -1,5 +1,6 @@
 use plex::lexer;
 
+use crate::errors::{OSLCompilerError, Item};
 use crate::{Token, Operators, Keywords, Globals, Span, Types, ShaderTypes};
 
 lexer! {
@@ -80,7 +81,10 @@ lexer! {
     r#"(bool|case|catch|char|class|const|delete|default|double|enum|\
     extern|false|friend|goto|inline|long|new|operator|private|protected|\
     short|signed|sizeof|static|switch|template|this|throw|true|try|typedefl|\
-    uniform|union|unsigned|varying|virtual|volatile)"# => Token::Error(format!("Reserved keyword: {}", text)),
+    uniform|union|unsigned|varying|virtual|volatile)"# => Token::Error{
+        message: String::from("Use of reserved keyword"),
+        content: String::new(),
+    },
 
     // Punctuation
     r#"\("# => Token::LeftParen,
@@ -146,7 +150,10 @@ lexer! {
     r#"\+\+"# => Token::OPIncrement,
     r#"--"# => Token::OPDecrement,
 
-    r#"."# => Token::Error(format!("unexpected character: {}", text)),
+    r#"."# => Token::Error{
+        message: String::from("Unexpected character"),
+        content: String::new(),
+    },
 }
 
 #[derive(Debug, Clone)]

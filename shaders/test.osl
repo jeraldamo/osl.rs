@@ -1,6 +1,5 @@
 int a;
-a = 3;
-{
-    float b;
+int b(int p1, float p2) {
+    float a;
 }
-float a;
+float c;

@@ -232,7 +232,10 @@ pub enum Token {
     KWWhile,
 
     ReservedKeyword(ReservedKeywords),
-    Error(String),
+    Error{
+        message: String,
+        content: String,
+    },
 
     Ident(String),
     Global(Globals),

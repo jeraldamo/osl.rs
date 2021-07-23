@@ -1,28 +1,17 @@
 use std::collections::HashMap;
-use inkwell::{
-    context::Context,
-    builder::Builder,
-    passes::PassManager,
-    module::Module,
-    values::{FunctionValue, PointerValue}};
+// use inkwell::{
+//     context::Context,
+//     builder::Builder,
+//     passes::PassManager,
+//     module::Module,
+//     values::{FunctionValue, PointerValue}};
 
 
 use crate::{Types, Span};
 use crate::ast::*;
 use crate::errors::*;
 use crate::symtab::SymbolTable;
-use std::thread::current;
 
-
-
-
-#[derive(Debug, Clone)]
-struct Variable {
-    name: String,
-    var_type: Types,
-    span: Span,
-    scope: u64,
-}
 
 pub struct Compiler<'a> {//, 'ctx> {
     //pub context: &'ctx Context,
@@ -52,29 +41,24 @@ impl<'a> Compiler<'a> {
 
     pub fn compile(&mut self) -> Result<Vec<u8>, OSLCompilerError> {
 
-        self.build_variables()?;
+        self.build_symbols(self.program)?;
 
-        // println!("\nVariables:");
-        // for (key, val) in self.variables.iter() {
-        //     println!("{}: {:?}", key, val);
-        // }
+        self.check_semantics();
+
+        println!("{}", self.symbol_table);
 
         Ok(vec![])
     }
 
-    pub fn check_semantics(&self) -> Result<(), OSLCompilerError> {
+    fn check_semantics(&self) -> Result<(), OSLCompilerError> {
 
 
         Ok(())
     }
 
-    fn build_variables(&mut self) -> Result<(), OSLCompilerError> {
+    fn build_symbols(&mut self, stmts: &Vec<Stmt>) -> Result<(), OSLCompilerError> {
 
-        let scope_stack: Vec<u64> = vec![1];
-        let cur_scope: u64 = 1;
-        let next_scope: u64 = cur_scope << 1;
-
-        for stmt in self.program {
+        for stmt in stmts {
             match &stmt.statement {
                 Stmt_::VariableDeclaration{var_type, name,..} => {
                     self.symbol_table.add_variable(get_var_type_value(var_type).unwrap(),
@@ -82,27 +66,48 @@ impl<'a> Compiler<'a> {
                                                    stmt.span,
                                                    false)?;
                 },
-                Stmt_::ExpressionStatement(expr) => {
-
-                },
-                Stmt_::BlockStatement(stmts) => {
-
+                Stmt_::BlockStatement(block_stmts) => {
+                    self.symbol_table.up_scope(stmt.span);
+                    self.build_symbols(block_stmts);
+                    self.symbol_table.down_scope();
                 },
                 Stmt_::ShaderDeclaration{body, ..} => {
 
                 },
-                Stmt_::FunctionDeclaration{body, ..} => {
+                Stmt_::FunctionDeclaration{name, ret_type, params, body} => {
+                    self.symbol_table.add_function(get_var_type_value(ret_type).unwrap(),
+                        get_ident_value(name).unwrap(),
+                        stmt.span,
+                        false);
 
+                    self.symbol_table.up_scope(stmt.span);
+
+                    for param in params {
+                        match param.clone().node {
+                            Expr_::Parameter {par_type, name, out, ..} => {
+                                self.symbol_table.add_variable(get_var_type_value(&par_type).unwrap(),
+                                    get_ident_value(&name).unwrap(),
+                                    param.span,
+                                    out);
+                            }
+                            _ => {}
+                        }
+                    }
+
+                    match body.clone().statement {
+                        Stmt_::BlockStatement(block_stmts) => {
+                            self.build_symbols(&block_stmts);
+                        }
+                        _ => {}
+                    }
+
+                    self.symbol_table.down_scope();
                 },
                 _ => {}
             }
         }
 
         Ok(())
-    }
-
-    fn build_variables_recursive(&self, cur_scope: Vec<u64>, next_scope: u64) -> u64 {
-        0
     }
 
 }

@@ -19,10 +19,39 @@ pub enum Symbols {
         scope: u64,
         public: bool,
     },
+    Shader {
+        shader_type: ShaderTypes,
+        name: String,
+        span: Span,
+        scope: u64,
+    },
     Closure,
 }
 
 impl Symbols {
+    pub fn get_symbol_type(&self) -> String {
+        match self {
+            Symbols::Variable {..} => String::from("Variable"),
+            Symbols::Function {..} => String::from("Function"),
+            Symbols::Shader {..} => String::from("Shader"),
+            _ => String::new(),
+        }
+    }
+    pub fn get_type(&self) -> Types {
+        match self {
+            Symbols::Variable {var_type, ..} => var_type.clone(),
+            Symbols::Function {ret_type, ..} => ret_type.clone(),
+            _ => Types::Void,
+        }
+    }
+
+    pub fn get_shader_type(&self) -> ShaderTypes {
+        match self {
+            Symbols::Shader {shader_type, ..} => shader_type.clone(),
+            _ => ShaderTypes::Shader,
+        }
+    }
+
     pub fn get_name(&self) -> String {
         match self {
             Symbols::Variable {name, ..} => name.clone(),
@@ -48,9 +77,10 @@ impl Symbols {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct SymbolTable {
     symbols: HashMap<String, Vec<Symbols>>,
-    cur_scope: u64,
+    pub cur_scope: u64,
     next_scope: u64,
     scope_stack: Vec<u64>,
     scopes: Vec<u64>,
@@ -82,10 +112,10 @@ impl SymbolTable {
 
                 if symbol.get_scope() == self.cur_scope {
                     // Duplicate symbol error
-                    return Err(OSLCompilerError::ExistingVariable (
-                        Item::new(symbol.get_span(), symbol.get_name()),
-                        Item::new(span, name),
-                    ));
+                    return Err(OSLCompilerError::ExistingVariable {
+                        existing: Item::new(symbol.get_span(), symbol.get_name()),
+                        new: Item::new(span, name),
+                    });
                 }
             }
 
@@ -114,10 +144,10 @@ impl SymbolTable {
             for symbol in self.symbols.get(name.as_str()).unwrap() {
                 if symbol.get_scope() == self.cur_scope {
                     // Duplicate symbol error
-                    return Err(OSLCompilerError::ExistingVariable (
-                        Item::new(symbol.get_span(), symbol.get_name()),
-                        Item::new(span, name),
-                    ));
+                    return Err(OSLCompilerError::ExistingVariable {
+                        existing: Item::new(symbol.get_span(), symbol.get_name()),
+                        new: Item::new(span, name),
+                    });
                 }
             }
 
@@ -156,5 +186,19 @@ impl SymbolTable {
         for symbol in self.symbols.get(dest.as_str()) {
             ;
         }
+    }
+}
+
+impl std::fmt::Display for SymbolTable {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut s = String::from("Symbol Table:\n");
+
+        for (key, value) in self.symbols.iter() {
+            s = format!("{}\t{}\n", s, key);
+            for sym in value {
+                s = format!("{}\t\t{:016b}({})\t{}:{:?}:{}\n", s, sym.get_scope(), sym.get_scope(), sym.get_symbol_type(), sym.get_type(), sym.get_span().line);
+            }
+        }
+        write!(f, "{}", s)
     }
 }
