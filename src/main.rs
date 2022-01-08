@@ -6,15 +6,15 @@ use codespan_reporting::files::SimpleFile;
 use codespan_reporting::term::termcolor::{StandardStream, ColorChoice};
 use codespan_reporting::term;
 
-use osl::*;
-use osl::lexer;
-use osl::parser;
-use osl::compiler;
+use osl::compiler::*;
+use osl::compiler::lexer;
+use osl::compiler::parser;
+use osl::compiler::compiler;
 use osl::errors::*;
 
 fn main() {
 
-    let shader_file = "darken.osl";
+    let shader_file = "test.osl";
     let file_path = current_dir()
         .unwrap()
         .join(PathBuf::from("shaders")
@@ -23,7 +23,7 @@ fn main() {
     let contents = fs::read_to_string(file_path).expect("Invalid file");
     println!("{}", contents.len());
 
-    let file = SimpleFile::new("darken.osl", contents.clone());
+    let file = SimpleFile::new("test.osl", contents.clone());
 
     match compile(contents.clone()) {
         Err(e) => {
@@ -59,11 +59,19 @@ fn compile(contents: String) -> Result<(), OSLCompilerError> {
         println!{"{:?}", tok};
     }
 
-    let statements = parser::parse(tokens.clone()).expect("Error Parsing");
+    let statements = match parser::parse(tokens.clone()) {
+        Err(error) => {
+            let (token, span) = error.0.unwrap();
+            return Err(OSLCompilerError::ParserError {
+                error: Item::new(span, error.1)
+            });
+        }
+        Ok(stmts) => stmts
+    };
 
     println!("{:#?}", statements);
 
-    let mut comp = compiler::Compiler::new(&statements, contents.len());
+    let mut comp = compiler::Compiler::new(tokens.clone().collect(), &statements, contents.len());
     comp.compile()?;
 
     Ok(())

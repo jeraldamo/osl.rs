@@ -1,5 +1,5 @@
-int a;
-int b(int p1, float p2) {
-    float a;
+shader my_shader() {
+    color red = color ("rgb", 1, 0, 0);
+    float r = red[0];
+    //float b = red.g;
 }
-float c;

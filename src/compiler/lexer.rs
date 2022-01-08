@@ -1,7 +1,8 @@
 use plex::lexer;
 
+use crate::compiler::{Token, Operators, Keywords, Globals, Span, Types, ShaderTypes};
 use crate::errors::{OSLCompilerError, Item};
-use crate::{Token, Operators, Keywords, Globals, Span, Types, ShaderTypes};
+
 
 lexer! {
     fn next_token(text: 'a) -> Token;
@@ -12,6 +13,8 @@ lexer! {
     r#"/[*](~(.*[*]/.*))[*]/"# => Token::Comment,
     // "C++-style" comments (// ...)
     r#"//[^\n]*"# => Token::Comment,
+    // Meta tags - can't contain "]]"
+    r#"\[\[(~(.*\]\].*))\]\]"# => Token::Meta(text.to_owned()),
     // Grab string literals
     r#"\"(\\.|[^\\"\n])*\""# => Token::Str(text.to_owned()),
     // Int literals
