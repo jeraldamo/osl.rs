@@ -45,7 +45,10 @@ impl<'a> Compiler<'a> {
 
         self.build_symbols(self.program)?;
 
+        println!("Checking Semantics...");
         self.check_semantics()?;
+
+        println!("Done Compiling");
 
         println!("{}", self.symbol_table);
 
@@ -187,7 +190,7 @@ impl<'a> Compiler<'a> {
                                     Box::new(value.clone())),
                             };
 
-                            get_expr_type(&expr,&self.symbol_table)?;
+                            get_expr_type(&expr, &self.symbol_table)?;
                         }
                     }
                 }

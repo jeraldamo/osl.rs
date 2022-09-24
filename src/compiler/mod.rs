@@ -5,6 +5,7 @@ pub mod ast;
 pub mod parser;
 pub mod compiler;
 pub mod symtab;
+pub mod cli;
 
 use crate::errors;
 
@@ -168,7 +169,7 @@ pub enum GeometricSpaces {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum Types {
     Int,
     Float,

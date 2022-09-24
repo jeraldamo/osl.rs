@@ -177,9 +177,10 @@ pub fn get_expr_type(expr: &Expr, symbols: &SymbolTable) -> Result<Types, OSLCom
 
             //let symbol = symbols.get_reference(name.span, name.n)
 
-            println!("HERE {:?}", name);
-                
-            Ok(Types::Void)
+            return match &name.node {
+                Expr_::VariableType(t) => Ok(*t),
+                _ => Ok(Types::Void),
+            }
         }
 
         Expr_::PointConstructor {point_type, x, y, z, space} => {

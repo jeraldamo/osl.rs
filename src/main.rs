@@ -6,13 +6,18 @@ use codespan_reporting::files::SimpleFile;
 use codespan_reporting::term::termcolor::{StandardStream, ColorChoice};
 use codespan_reporting::term;
 
+use clap::Parser;
+
 use osl::compiler::*;
 use osl::compiler::lexer;
 use osl::compiler::parser;
 use osl::compiler::compiler;
+use osl::compiler::cli;
 use osl::errors::*;
 
 fn main() {
+
+    let args = cli::CliArgs::parse();
 
     let shader_file = "test.osl";
     let file_path = current_dir()
@@ -41,7 +46,7 @@ fn main() {
 
 fn compile(contents: String) -> Result<(), OSLCompilerError> {
 
-    let tokens= lexer::Lexer::new(contents.as_str());
+    let tokens = lexer::Lexer::new(contents.as_str());
 
     for tok in tokens.clone() {
         match tok.0 {
