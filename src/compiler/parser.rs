@@ -44,6 +44,9 @@ parser! {
         ReturnStatement[s] => s,
         StructDeclaration[s] => s,
         ShaderDeclaration[s] => s,
+        IfStatement[s] => s,
+        ElseIfStatement[s] => s,
+        ElseStatement[s] => s,
     }
 
     // An expression ending in a semicolon
@@ -114,6 +117,34 @@ parser! {
         }
     }
 
+    IfStatement: Stmt {
+        KWIf LeftParen Expression[x] RightParen BlockStatement[block] => Stmt {
+            span: span!(),
+            statement: Stmt_::IfStatement {
+                condition: x,
+                body: Box::new(block),
+            }
+        }
+    }
+
+    ElseIfStatement: Stmt {
+        ElseIf LeftParen Expression[x] RightParen BlockStatement[block] => Stmt {
+            span: span!(),
+            statement: Stmt_::ElseIfStatement {
+                condition: x,
+                body: Box::new(block),
+            }
+        }
+    }
+
+    ElseStatement: Stmt {
+        KWElse BlockStatement[block] => Stmt {
+            span: span!(),
+            statement: Stmt_::ElseStatement {
+                body: Box::new(block),
+            }
+        }
+    }
 
     //===============
     // Expressions

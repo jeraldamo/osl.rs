@@ -2,4 +2,15 @@ shader my_shader() {
     color red = color ("rgb", 1, 0, 0);
     float r = red[0];
     //float b = red.g;
+    float x = 0.0;
+    if (r > 0.2) {
+      x = 1.0;
+    }
+    float y = 3.0;
+    else if (r > 0.3) {
+      x = 2.0;
+    }
+    else {
+      x = y;
+    }
 }

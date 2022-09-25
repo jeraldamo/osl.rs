@@ -45,6 +45,8 @@ lexer! {
         }
     }
 
+    r#"else if"# => Token::ElseIf,
+
     // Keywords
     r#"and"# => Token::KWAnd,
     r#"break"# => Token::KWBreak,
@@ -78,6 +80,7 @@ lexer! {
     r#"void"# => Token::Type(Types::Void),
     r#"volume"# => Token::Shader(ShaderTypes::Volume),
     r#"while"# => Token::KWWhile,
+
 
     // Reserved keywords
     // Currently we just panic, will add error handling...

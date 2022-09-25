@@ -36,7 +36,18 @@ pub enum Stmt_ {
         shader_type: Expr,
         params: Vec<Expr>,
         body: Box<Stmt>,
-    }
+    },
+    IfStatement {
+        condition: Expr,
+        body: Box<Stmt>,
+    },
+    ElseIfStatement {
+        condition: Expr,
+        body: Box<Stmt>,
+    },
+    ElseStatement {
+        body: Box<Stmt>,
+    },
 }
 
 #[derive(Debug, Clone)]
