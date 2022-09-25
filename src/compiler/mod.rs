@@ -235,6 +235,8 @@ pub enum Token {
     KWVolume,
     KWWhile,
 
+    ElseIf,
+
     ReservedKeyword(ReservedKeywords),
     Error{
         message: String,

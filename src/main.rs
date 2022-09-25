@@ -19,13 +19,13 @@ fn main() {
 
     let args = cli::CliArgs::parse();
 
-    let shader_file = "test.osl";
-    let file_path = current_dir()
-        .unwrap()
-        .join(PathBuf::from("shaders")
-            .join(shader_file.clone())
-        );
-    let contents = fs::read_to_string(file_path).expect("Invalid file");
+    // let shader_file = "test.osl";
+    // let file_path = current_dir()
+    //     .unwrap()
+    //     .join(PathBuf::from("shaders")
+    //         .join(shader_file.clone())
+    ///     );
+    let contents = fs::read_to_string(args.input_file).expect("Invalid file");
     println!("{}", contents.len());
 
     let file = SimpleFile::new("test.osl", contents.clone());
