@@ -204,6 +204,20 @@ impl<'a> Compiler<'a> {
                     }
                 }
 
+                Stmt_::IfStatement { condition, .. } |
+                Stmt_::ElseIfStatement { condition, .. } | 
+                Stmt_::WhileStatement {condition, .. } |
+                Stmt_::DoWhileStatement { condition, .. } => {
+                    let condition_type = get_expr_type(&condition, &self.symbol_table)?;
+                    if condition_type != Types::Int && 
+                       condition_type != Types::Float &&
+                       condition_type != Types::String {
+                        return Err(OSLCompilerError::InvalidCondition { expr: Item::new(condition.span, format!("{:?}", condition_type))});    
+                    }
+                }
+
+
+
                 _ => {}
             }
         }

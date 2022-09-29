@@ -169,7 +169,7 @@ pub enum GeometricSpaces {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Types {
     Int,
     Float,
@@ -180,6 +180,7 @@ pub enum Types {
     Normal,
     Matrix,
     Void,
+    Closure(Box<Types>),
 }
 
 #[allow(dead_code)]

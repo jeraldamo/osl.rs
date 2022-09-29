@@ -17,6 +17,8 @@ pub enum OSLCompilerError {
 
     MismatchedTypesArgument {expected: Item, received: Item},
 
+    InvalidCondition {expr: Item},
+
     NonExistentIdent {ident: Item},
 
     OutOfScopeIdent {origin: Item, options: Vec<Item>},
@@ -73,6 +75,13 @@ impl OSLCompilerError {
                         .with_message(format!("Expected type {}, received type {}",
                             expected.content.clone(),
                             received.content.clone())),
+                ]),
+
+            OSLCompilerError::InvalidCondition {expr} => Diagnostic::error()
+                .with_message("Conditional expressions must evaluate to type Int.")
+                .with_labels(vec![
+                    Label::primary((), expr.range.clone())
+                        .with_message(format!("Expression of type {}", expr.content)),
                 ]),
 
             OSLCompilerError::NonExistentIdent {ident} => Diagnostic::error()

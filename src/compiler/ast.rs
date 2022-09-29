@@ -48,6 +48,20 @@ pub enum Stmt_ {
     ElseStatement {
         body: Box<Stmt>,
     },
+    WhileStatement {
+        condition: Expr,
+        body: Box<Stmt>,
+    },
+    DoWhileStatement {
+        condition: Expr,
+        body: Box<Stmt>,
+    },
+    ForStatement {
+        initialization: Expr,
+        condition: Expr,
+        iteration: Expr,
+        body: Box<Stmt>,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -70,6 +84,10 @@ pub enum Expr_ {
     EmptyExpression,
     VariableType(Types),
     ShaderType(ShaderTypes),
+    ExplicitCast {
+        cast_type: Box<Expr>, 
+        cast_expr: Box<Expr>
+    },
     Parameter {
         par_type: Box<Expr>,
         name: Box<Expr>,
@@ -189,7 +207,7 @@ pub fn get_expr_type(expr: &Expr, symbols: &SymbolTable) -> Result<Types, OSLCom
             //let symbol = symbols.get_reference(name.span, name.n)
 
             return match &name.node {
-                Expr_::VariableType(t) => Ok(*t),
+                Expr_::VariableType(t) => Ok(t.clone()),
                 _ => Ok(Types::Void),
             }
         }
@@ -542,6 +560,13 @@ pub fn get_expr_type(expr: &Expr, symbols: &SymbolTable) -> Result<Types, OSLCom
                 _ => Ok(Types::Void),
             }
         },
+
+        Expr_::ExplicitCast{cast_type, cast_expr} => {
+            // Check if cast_expr can be cast to cast_type
+            
+            return get_expr_type(&cast_type, symbols);
+
+        }
 
         Expr_::VariableType(t) => return Ok(t.clone()),
         Expr_::IntLiteral(..) => return Ok(Types::Int),

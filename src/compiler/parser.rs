@@ -47,6 +47,9 @@ parser! {
         IfStatement[s] => s,
         ElseIfStatement[s] => s,
         ElseStatement[s] => s,
+        WhileStatement[s] => s,
+        DoWhileStatement[s] => s,
+        ForStatement[s] => s,
     }
 
     // An expression ending in a semicolon
@@ -146,6 +149,38 @@ parser! {
         }
     }
 
+    WhileStatement: Stmt {
+        KWWhile LeftParen Expression[x] RightParen BlockStatement[block] => Stmt {
+            span: span!(),
+            statement: Stmt_::WhileStatement {
+                condition: x,
+                body: Box::new(block),
+            }
+        }
+    }
+
+    DoWhileStatement: Stmt {
+        KWDo BlockStatement[block] KWWhile LeftParen Expression[x] RightParen => Stmt {
+            span: span!(),
+            statement: Stmt_::DoWhileStatement {
+                condition: x,
+                body: Box::new(block),
+            }
+        }
+    }
+
+    ForStatement: Stmt {
+        KWFor LeftParen OptAssignment[init] Semicolon Expression[cond] Semicolon Expression[iter] RightParen BlockStatement[block] => Stmt {
+            span: span!(),
+            statement: Stmt_::ForStatement {
+                initialization: init,
+                condition: cond,
+                iteration: iter,
+                body: Box::new(block),
+            }
+        }
+    }
+
     //===============
     // Expressions
     //===============
@@ -177,6 +212,10 @@ parser! {
     }
 
     VariableType: Expr {
+        KWClosure Type(s) => Expr {
+            span: span!(),
+            node: Expr_::VariableType(Types::Closure(Box::new(s))),
+        },
         Type(s) => Expr {
             span: span!(),
             node: Expr_::VariableType(s),
@@ -239,8 +278,9 @@ parser! {
 
     Expression: Expr {
         VariableAssignment[x] => x,
+        ExplicitCastExpression[x] => x,
         LogicalOrExpression[x] => x,
-        FunctionCall[x] => x,
+        // FunctionCall[x] => x,
         // PointConstructorExpression[x] => x,
     }
 
@@ -250,6 +290,16 @@ parser! {
             span: Span{hi: 0, lo: 0, line: 0},
             node: Expr_::EmptyExpression,
         }
+    }
+
+    ExplicitCastExpression: Expr {
+        LeftParen VariableType[cast_type] RightParen LogicalOrExpression[x] => Expr {
+            span: span!(),
+            node: Expr_::ExplicitCast {
+                cast_type: Box::new(cast_type), 
+                cast_expr: Box::new(x)
+            }
+        },
     }
 
     FunctionCall: Expr {
@@ -291,6 +341,7 @@ parser! {
     //         }
     //     }
     // }
+
 
     LogicalOrExpression: Expr {
         LogicalOrExpression[lhs] OPLogicalOr LogicalAndExpression[rhs] => Expr {
@@ -461,6 +512,7 @@ parser! {
     }
 
     PrimaryExpression: Expr {
+        FunctionCall[x] => x,
         Literal[x] => x,
         Identifier[x] => x,
         GlobalVariable[x] => x,
