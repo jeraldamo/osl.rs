@@ -1,7 +1,7 @@
 use plex::lexer;
 
-use crate::compiler::{Token, Operators, Keywords, Globals, Span, Types, ShaderTypes};
-use crate::errors::{OSLCompilerError, Item};
+use crate::compiler::{Token, Globals, Span, Types, ShaderTypes};
+// use crate::errors::{OSLCompilerError, Item};
 
 
 lexer! {

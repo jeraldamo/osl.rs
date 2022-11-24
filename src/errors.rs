@@ -1,7 +1,7 @@
 use codespan_reporting::diagnostic::{Diagnostic, Label};
-use codespan_reporting::files::SimpleFile;
-use codespan_reporting::term::termcolor::StandardStream;
-use codespan_reporting::term::{self, ColorArg};
+
+
+
 use std::ops::Range;
 
 use crate::compiler::Span;

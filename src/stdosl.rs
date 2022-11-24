@@ -1,15 +1,18 @@
-use crate::compiler::symtab::{SymbolTable, Symbols};
+use crate::compiler::symtab::SymbolTable;
 use crate::compiler::{Types, Span};
+use crate::errors::OSLCompilerError;
 
 
-use inkwell::builder::Builder;
-use inkwell::context::Context;
-use inkwell::module::Module;
 
-pub fn populate_stdosl_symbols(symbol_table: &mut SymbolTable) {
+
+
+
+pub fn populate_stdosl_symbols(symbol_table: &mut SymbolTable) -> Result<(), OSLCompilerError>{
     let default_span = Span {lo: 0, hi: 0, line: 0};
 
-    symbol_table.add_function(Types::Color, String::from("color"), Vec::new(), default_span, true);
+    symbol_table.add_function(Types::Color, String::from("color"), Vec::new(), default_span, true)?;
+
+    Ok(())
 }
 
 // pub fn generate_stdosl(context: &Context, builder: &Builder, module: &Module) -> Option<()> {

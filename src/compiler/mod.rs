@@ -1,13 +1,9 @@
-#![feature(exclusive_range_pattern)]
-
 pub mod lexer;
 pub mod ast;
 pub mod parser;
 pub mod compiler;
 pub mod symtab;
 pub mod cli;
-
-use crate::errors;
 
 
 #[derive(Debug, Clone, Copy)]

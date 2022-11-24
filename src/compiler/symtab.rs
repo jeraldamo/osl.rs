@@ -87,7 +87,7 @@ pub struct SymbolTable {
 }
 
 impl SymbolTable {
-    pub fn new(program_size: usize) -> Self {
+    pub fn new(program_size: usize) -> Result<Self, OSLCompilerError> {
         let mut symbol_table = SymbolTable {
             symbols: HashMap::new(),
             cur_scope: 1,
@@ -99,9 +99,9 @@ impl SymbolTable {
             n_shaders: 0,
         };
 
-        stdosl::populate_stdosl_symbols(&mut symbol_table);
+        stdosl::populate_stdosl_symbols(&mut symbol_table)?;
 
-        symbol_table
+        Ok(symbol_table)
 
     }
 

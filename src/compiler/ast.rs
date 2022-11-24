@@ -192,7 +192,7 @@ pub fn get_expr_type(expr: &Expr, symbols: &SymbolTable) -> Result<Types, OSLCom
             };
         },
 
-        Expr_::FunctionCallExpression {name, arguments} => {
+        Expr_::FunctionCallExpression {name, arguments: _} => {
 
             // let arg_types: Vec<Types> = arguments.iter()
             //     .map(|expr| {get_expr_type(expr, symbols)?})
@@ -561,7 +561,7 @@ pub fn get_expr_type(expr: &Expr, symbols: &SymbolTable) -> Result<Types, OSLCom
             }
         },
 
-        Expr_::ExplicitCast{cast_type, cast_expr} => {
+        Expr_::ExplicitCast{cast_type, cast_expr: _} => {
             // Check if cast_expr can be cast to cast_type
             
             return get_expr_type(&cast_type, symbols);

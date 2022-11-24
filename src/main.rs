@@ -1,6 +1,4 @@
-use std::env::current_dir;
 use std::fs;
-use std::path::PathBuf;
 
 use codespan_reporting::files::SimpleFile;
 use codespan_reporting::term::termcolor::{StandardStream, ColorChoice};
@@ -15,16 +13,10 @@ use osl::compiler::compiler;
 use osl::compiler::cli;
 use osl::errors::*;
 
-fn main() {
+fn main() -> Result<(), String> {
 
     let args = cli::CliArgs::parse();
 
-    // let shader_file = "test.osl";
-    // let file_path = current_dir()
-    //     .unwrap()
-    //     .join(PathBuf::from("shaders")
-    //         .join(shader_file.clone())
-    ///     );
     let contents = fs::read_to_string(args.input_file).expect("Invalid file");
     println!("{}", contents.len());
 
@@ -38,10 +30,13 @@ fn main() {
                 end_context_lines: 3,
                 ..Default::default()
             };
-            term::emit(&mut writer.lock(), &config, &file, &e.report());
+            term::emit(&mut writer.lock(), &config, &file, &e.report())
+                .map_err(|e| e.to_string())?;
         }
         _ => {}
     }
+
+    Ok(())
 }
 
 fn compile(contents: String) -> Result<(), OSLCompilerError> {
@@ -66,7 +61,7 @@ fn compile(contents: String) -> Result<(), OSLCompilerError> {
 
     let statements = match parser::parse(tokens.clone()) {
         Err(error) => {
-            let (token, span) = error.0.unwrap();
+            let (_token, span) = error.0.unwrap();
             return Err(OSLCompilerError::ParserError {
                 error: Item::new(span, error.1)
             });
@@ -76,7 +71,7 @@ fn compile(contents: String) -> Result<(), OSLCompilerError> {
 
     println!("{:#?}", statements);
 
-    let mut comp = compiler::Compiler::new(tokens.clone().collect(), &statements, contents.len());
+    let mut comp = compiler::Compiler::new(tokens.clone().collect(), &statements, contents.len())?;
     comp.compile()?;
 
     Ok(())

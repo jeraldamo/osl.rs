@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 // use inkwell::{
 //     context::Context,
 //     builder::Builder,
@@ -29,16 +28,16 @@ impl<'a> Compiler<'a> {
         //module: &'a Module<'ctx>,
         tokens: Vec<(Token, Span)>,
         program: &'a Vec<Stmt>,
-        program_size: usize) -> Self {
+        program_size: usize) -> Result<Self, OSLCompilerError> {
 
-        Self {
+        Ok(Self {
             //context,
             //builder,
             //module,
             tokens,
             program,
-            symbol_table: SymbolTable::new(program_size),
-        }
+            symbol_table: SymbolTable::new(program_size)?,
+        })
     }
 
     pub fn compile(&mut self) -> Result<Vec<u8>, OSLCompilerError> {
@@ -112,7 +111,7 @@ impl<'a> Compiler<'a> {
 
                     match body.clone().statement {
                         Stmt_::BlockStatement(block_stmts) => {
-                            self.build_symbols(&block_stmts);
+                            self.build_symbols(&block_stmts)?;
                         }
                         _ => {}
                     }
@@ -145,7 +144,7 @@ impl<'a> Compiler<'a> {
 
                     match body.clone().statement {
                         Stmt_::BlockStatement(block_stmts) => {
-                            self.build_symbols(&block_stmts);
+                            self.build_symbols(&block_stmts)?;
                         }
                         _ => {}
                     }
@@ -160,7 +159,7 @@ impl<'a> Compiler<'a> {
                         });
                     }
                     self.symbol_table.up_scope(stmt.span);
-                    self.build_symbols(block_stmts);
+                    self.build_symbols(block_stmts)?;
                     self.symbol_table.down_scope();
                 },
                 _ => {}
@@ -173,7 +172,7 @@ impl<'a> Compiler<'a> {
     fn check_types(&mut self, stmts: &Vec<Stmt>) -> Result<(), OSLCompilerError> {
         for stmt in stmts {
             match &stmt.statement {
-                Stmt_::ExpressionStatement(expr) => { ;
+                Stmt_::ExpressionStatement(expr) => { 
                     get_expr_type(expr, &self.symbol_table)?;
                 },
 
