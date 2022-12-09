@@ -191,13 +191,15 @@ impl SymbolTable {
         };
 
         if self.symbols.contains_key(name.as_str()) {
-            for symbol in self.symbols.get(name.as_str()).unwrap() {
-                if symbol.get_scope() == self.cur_scope {
-                    // Duplicate symbol error
-                    return Err(OSLCompilerError::ExistingVariable {
-                        existing: Item::new(symbol.get_span(), symbol.get_name()),
-                        new: Item::new(span, name),
-                    });
+            if let Some(s) = self.symbols.get(name.as_str()) {
+                for symbol in s {
+                    if symbol.get_scope() == self.cur_scope {
+                        // Duplicate symbol error
+                        return Err(OSLCompilerError::ExistingVariable {
+                            existing: Item::new(symbol.get_span(), symbol.get_name()),
+                            new: Item::new(span, name),
+                        });
+                    }
                 }
             }
 
@@ -240,12 +242,14 @@ impl SymbolTable {
         let mut items: Vec<Item> = Vec::new();
         let scope = self.scopes[origin_span.lo];
 
-        for symbol in self.symbols.get(dest_ident.as_str()).unwrap() {
-            if scope | symbol.get_scope() == scope {
-                return Ok(());
-            }
+        if let Some(s) = self.symbols.get(dest_ident.as_str()) {
+            for symbol in s {
+                if scope | symbol.get_scope() == scope {
+                    return Ok(());
+                }
 
-            items.push(Item::new(symbol.get_span(), ""));
+                items.push(Item::new(symbol.get_span(), ""));
+            }
         }
 
         Err(OSLCompilerError::OutOfScopeIdent {

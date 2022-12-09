@@ -1,0 +1,99 @@
+; checker.osl translated to SPIR-V
+
+OpCapability Shader
+OpMemoryModel Logical Simple
+OpEntryPoint GLCompute %checker_entry "checker" %checker_a1 %checker_a2 %checker_a3 %checker_a4 %checker_a5
+
+
+; Debug
+OpName %checker_a1 "Pos"
+OpName %checker_a2 "Scale"
+OpName %checker_a3 "Color1"
+OpName %checker_a4 "Color2"
+OpName %checker_a5 "Col"
+
+; types used
+%f32 = OpTypeFloat 32
+%v3f32 = OpTypeVector %f32 3
+%void = OpTypeVoid
+%i32 = OpTypeInt 32 1
+%bool = OpTypeBool
+%v3f32in = OpTypePointer Input %v3f32
+%f32in = OpTypePointer Input %f32
+%v3f32out = OpTypePointer Output %v3f32
+
+
+; checker shader arguments
+%checker_a1 = OpVariable %v3f32in Input
+%checker_a2 = OpVariable %f32in Input
+%checker_a3 = OpVariable %v3f32in Input
+%checker_a4 = OpVariable %v3f32in Input
+%checker_a5 = OpVariable %v3f32out Output
+
+; constants
+%checker_5 = OpConstant %f32 2.0
+%checker_15 = OpConstant %i32 2
+
+; checker shader body
+%checker_type = OpTypeFunction %void
+%checker_entry = OpFunction %void None %checker_type
+%checker_1 = OpLabel
+
+;checker.osl:9
+;    point p = Pos * Scale;
+%checker_2 = OpLoad %v3f32 %checker_a1
+%checker_3 = OpLoad %f32 %checker_a2
+%checker_4 = OpVectorTimesScalar %v3f32 %checker_2 %checker_3      ; point p
+
+
+;checker.osl:10
+;    int x = (int)mod(p[0],2.0);
+%checker_6 = OpCompositeExtract %f32 %checker_4 0
+%checker_7 = OpFMod %f32 %checker_6 %checker_5
+%checker_8 = OpConvertFToS %i32 %checker_7
+
+;checker.osl:11
+;    int y = (int)mod(p[1],2.0);
+%checker_9 = OpCompositeExtract %f32 %checker_4 1
+%checker_10 = OpFMod %f32 %checker_9 %checker_5
+%checker_11 = OpConvertFToS %i32 %checker_10
+
+;checker.osl:12
+;    int z = (int(mod(p[2],2.0);
+%checker_12 = OpCompositeExtract %f32 %checker_4 2
+%checker_13 = OpFMod %f32 %checker_12 %checker_5
+%checker_14 = OpConvertFToS %i32 %checker_13
+
+%checker_16 = OpSMod %i32 %checker_8 %checker_15
+%checker_17 = OpSMod %i32 %checker_11 %checker_15
+%checker_18 = OpBitwiseXor %i32 %checker_15 %checker_16
+%checker_19 = OpSMod %i32 %checker_14 %checker_15
+%checker_20 = OpIEqual %bool %checker_18 %checker_19
+
+OpSelectionMerge %checker_23 None
+OpBranchConditional %checker_20 %checker_21 %checker_22
+
+%checker_21 = OpLabel
+;checker.osl:15
+;      Col = Color1;
+OpCopyMemory %checker_a5 %checker_a3
+OpBranch %checker_23
+
+%checker_22 = OpLabel
+;checker.osl:17
+;      Col = Color2;
+OpCopyMemory %checker_a5 %checker_a4
+OpBranch %checker_23
+
+%checker_23 = OpLabel
+OpReturn
+OpFunctionEnd
+
+;%f32mod_a1 OpVariable %f32in Input
+
+
+;%f32mod_type = OpTypeFunction %f32 %f32 %f32
+;%f32mod_entry = OpFunction %f32 None %f32
+;%f32mod_1 = OpLabel
+
+

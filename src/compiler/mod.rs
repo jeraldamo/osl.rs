@@ -4,6 +4,7 @@ pub mod parser;
 pub mod compiler;
 pub mod symtab;
 pub mod cli;
+pub mod spirv;
 
 
 #[derive(Debug, Clone, Copy)]

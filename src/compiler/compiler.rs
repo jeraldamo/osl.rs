@@ -42,14 +42,19 @@ impl<'a> Compiler<'a> {
 
     pub fn compile(&mut self) -> Result<Vec<u8>, OSLCompilerError> {
 
+        println!("Building symbol table...");
         self.build_symbols(self.program)?;
+        // println!("{:#?}", self.symbol_table);
 
         println!("Checking Semantics...");
         self.check_semantics()?;
 
+        println!("Building SPIR-V...");
+        
+
         println!("Done Compiling");
 
-        println!("{}", self.symbol_table);
+        // println!("{}", self.symbol_table);
 
         Ok(vec![])
     }

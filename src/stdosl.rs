@@ -11,6 +11,7 @@ pub fn populate_stdosl_symbols(symbol_table: &mut SymbolTable) -> Result<(), OSL
     let default_span = Span {lo: 0, hi: 0, line: 0};
 
     symbol_table.add_function(Types::Color, String::from("color"), Vec::new(), default_span, true)?;
+    symbol_table.add_function(Types::Float, String::from("mod"), vec![Types::Float, Types::Float], default_span, true)?;
 
     Ok(())
 }
