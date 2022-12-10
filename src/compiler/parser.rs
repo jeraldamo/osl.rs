@@ -1,6 +1,6 @@
-use crate::compiler::*;
-use crate::compiler::Token::*;
-use crate::compiler::ast::*;
+use super::*;
+use super::Token::*;
+use super::ast::*;
 use plex::parser;
 
 parser! {

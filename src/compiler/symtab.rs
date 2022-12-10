@@ -1,4 +1,5 @@
-use crate::compiler::*;
+use super::*;
+use super::ast::*;
 use crate::errors::*;
 use crate::stdosl;
 
@@ -71,6 +72,7 @@ impl Symbols {
             _ => 1,
         }
     }
+
 }
 
 #[derive(Debug, Clone)]
@@ -286,6 +288,151 @@ impl SymbolTable {
         }
 
         count1 - count2
+    }
+
+    pub fn build_symbols(&mut self, stmts: &Vec<Stmt>) -> Result<(), OSLCompilerError> {
+
+        for stmt in stmts {
+            match &stmt.statement {
+                Stmt_::VariableDeclaration{var_type, name,..} => {
+                    self.add_variable(get_var_type_value(var_type).unwrap(),
+                                                   get_ident_value(name).unwrap(),
+                                                   stmt.span,
+                                                   false)?;
+                },
+
+                Stmt_::ShaderDeclaration{name, shader_type, params, body, ..} => {
+                    self.add_shader(get_shader_type_value(shader_type).unwrap(),
+                                                   get_ident_value(name).unwrap(),
+                                                   stmt.span)?;
+
+                    self.up_scope(Span{lo: name.span.hi, hi: stmt.span.hi, line: 0});
+
+                    for param in params {
+                        match param.clone().node {
+                            Expr_::Parameter {par_type, name, out, ..} => {
+                                self.add_variable(get_var_type_value(&par_type).unwrap(),
+                                   get_ident_value(&name).unwrap(),
+                                   param.span,
+                                   out)?;
+                            }
+                            _ => {}
+                        }
+                    }
+
+                    match body.clone().statement {
+                        Stmt_::BlockStatement(block_stmts) => {
+                            self.build_symbols(&block_stmts)?;
+                        }
+                        _ => {}
+                    }
+
+                    self.down_scope();
+                },
+
+                Stmt_::FunctionDeclaration{name, ret_type, params, body} => {
+                    self.add_function(get_var_type_value(ret_type).unwrap(),
+                        get_ident_value(name).unwrap(),
+                        Vec::new(),
+                        stmt.span,
+                        false)?;
+
+
+                    //                                         VV Bug??
+                    self.up_scope(Span{lo: name.span.hi, hi: stmt.span.hi, line: 0});
+
+                    for param in params {
+                        match param.clone().node {
+                            Expr_::Parameter {par_type, name, out, ..} => {
+                                self.add_variable(get_var_type_value(&par_type).unwrap(),
+                                    get_ident_value(&name).unwrap(),
+                                    param.span,
+                                    out)?;
+                            }
+                            _ => {}
+                        }
+                    }
+
+                    match body.clone().statement {
+                        Stmt_::BlockStatement(block_stmts) => {
+                            self.build_symbols(&block_stmts)?;
+                        }
+                        _ => {}
+                    }
+
+                    self.down_scope();
+                },
+
+                Stmt_::BlockStatement(block_stmts) => {
+                    if self.cur_scope == 1 {
+                        return Err(OSLCompilerError::GlobalScopeBlock {
+                            block : Item::new(stmt.span, "")
+                        });
+                    }
+                    self.up_scope(stmt.span);
+                    self.build_symbols(block_stmts)?;
+                    self.down_scope();
+                },
+                _ => {}
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn check_types(&self, stmts: &Vec<Stmt>) -> Result<(), OSLCompilerError> {
+        for stmt in stmts {
+            match &stmt.statement {
+                Stmt_::ExpressionStatement(expr) => { 
+                    get_expr_type(expr, &self)?;
+                },
+
+                Stmt_::VariableDeclaration {name, value, ..} => {
+
+                    match value.node {
+                        Expr_::EmptyExpression => {},
+
+                        _ => {
+                            let expr = Expr {
+                                span: Span{lo: name.span.lo, hi: value.span.hi, line: name.span.line},
+                                node: Expr_::Assignment(
+                                    Box::new(name.clone()),
+                                    Box::new(value.clone())),
+                            };
+
+                            get_expr_type(&expr, &self)?;
+                        }
+                    }
+                }
+
+                Stmt_::ShaderDeclaration {body, ..} => {
+                    match &body.statement {
+                        Stmt_::BlockStatement(stmts) => {
+                            self.check_types(&stmts.clone())?;
+                        }
+                        _ => {}
+                    }
+                }
+
+                Stmt_::IfStatement { condition, .. } |
+                Stmt_::ElseIfStatement { condition, .. } | 
+                Stmt_::WhileStatement {condition, .. } |
+                Stmt_::DoWhileStatement { condition, .. } => {
+                    let condition_type = get_expr_type(&condition, &self)?;
+                    if condition_type != Types::Int && 
+                       condition_type != Types::Float &&
+                       condition_type != Types::String {
+                        return Err(OSLCompilerError::InvalidCondition { expr: Item::new(condition.span, format!("{:?}", condition_type))});    
+                    }
+                }
+
+
+
+                _ => {}
+            }
+        }
+
+        Ok(())
     }
 }
 

@@ -6,23 +6,19 @@ use codespan_reporting::term;
 
 use clap::Parser;
 
-use osl::compiler::*;
-use osl::compiler::lexer;
-use osl::compiler::parser;
-use osl::compiler::compiler;
-use osl::compiler::cli;
-use osl::errors::*;
+use osl::compiler::{compile, Backend};
+use osl::cli::*;
 
 fn main() -> Result<(), String> {
 
-    let args = cli::CliArgs::parse();
+    let args = CliArgs::parse();
 
     let contents = fs::read_to_string(args.input_file).expect("Invalid file");
     println!("{}", contents.len());
 
     let file = SimpleFile::new("test.osl", contents.clone());
 
-    match compile(contents.clone()) {
+    match compile(contents.clone(), Backend::LLVM) {
         Err(e) => {
             let writer = StandardStream::stderr(ColorChoice::Always);
             let config = codespan_reporting::term::Config{
@@ -39,40 +35,3 @@ fn main() -> Result<(), String> {
     Ok(())
 }
 
-fn compile(contents: String) -> Result<(), OSLCompilerError> {
-
-    let tokens = lexer::Lexer::new(contents.as_str());
-
-    for tok in tokens.clone() {
-        match tok.0 {
-            Token::Error{message, content} => {
-                return Err(OSLCompilerError::LexerError {
-                    message,
-                    error: Item::new(tok.1, content),
-                });
-            },
-            _ => {},
-        }
-    }
-
-    for tok in tokens.clone() {
-        println!{"{:?}", tok};
-    }
-
-    let statements = match parser::parse(tokens.clone()) {
-        Err(error) => {
-            let (_token, span) = error.0.unwrap();
-            return Err(OSLCompilerError::ParserError {
-                error: Item::new(span, error.1)
-            });
-        }
-        Ok(stmts) => stmts
-    };
-
-    println!("{:#?}", statements);
-
-    let mut comp = compiler::Compiler::new(tokens.clone().collect(), &statements, contents.len())?;
-    comp.compile()?;
-
-    Ok(())
-}

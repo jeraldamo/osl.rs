@@ -4,3 +4,4 @@
 pub mod compiler;
 pub mod errors;
 pub mod stdosl;
+pub mod cli;

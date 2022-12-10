@@ -1,15 +1,13 @@
 shader my_shader() {
     color red = color ("rgb", noise(P * 10.0), 0, 0);
-    //float r = red[0];
-    //float b = red.g;
-    //float x = 0.0;
-    //float y = 2.0;
-    //if (r >= 0.2) {
-    //  x = (int)1.0;
-    //}
-    //else {
-    //  x = y;
-    //}
-
-    //function 
+    float r = red[0];
+    float b = red.g;
+    float x = 0.0;
+    float y = 2.0;
+    if (r >= 0.2) {
+      x = (int)1.0;
+    }
+    else {
+      x = y;
+    }
 }
