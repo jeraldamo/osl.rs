@@ -3,6 +3,7 @@ mod ast;
 mod parser;
 pub mod symtab;
 mod spirv;
+mod llvm;
 
 
 use lexer::Lexer;
@@ -336,7 +337,7 @@ pub fn compile(contents: String, backend: Backend) -> Result<Vec<u8>, OSLCompile
     }
 
     println!("Parsing AST...");
-    let statements = match parser::parse(tokens.clone()) {
+    let program = match parse(tokens.clone()) {
         Err(error) => {
             let (_token, span) = error.0.unwrap();
             return Err(OSLCompilerError::ParserError {
@@ -346,18 +347,19 @@ pub fn compile(contents: String, backend: Backend) -> Result<Vec<u8>, OSLCompile
         Ok(stmts) => stmts
     };
 
-    println!("{:#?}", statements);
-
+    println!("{:#?}", program);
 
     println!("Building symbol table...");
     let mut symbol_table = SymbolTable::new(contents.len())?;
-    symbol_table.build_symbols(&statements)?;
+    symbol_table.build_symbols(&program)?;
 
     println!("Checking symantics...");
-    check_semantics(&symbol_table, &tokens, &statements)?;
+    check_semantics(&symbol_table, &tokens, &program)?;
 
     // let mut comp = compiler::Compiler::new(tokens.clone().collect(), &statements, contents.len())?;
     // comp.compile()?;
+    //
+    llvm::compile(&program, &symbol_table)?;
 
     Ok(vec![])
 }
