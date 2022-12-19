@@ -353,6 +353,8 @@ pub fn compile(contents: String, backend: Backend) -> Result<Vec<u8>, OSLCompile
     let mut symbol_table = SymbolTable::new(contents.len())?;
     symbol_table.build_symbols(&program)?;
 
+    println!("{:#?}", symbol_table);
+
     println!("Checking symantics...");
     check_semantics(&symbol_table, &tokens, &program)?;
 
